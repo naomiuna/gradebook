@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,41 +11,59 @@ namespace Grades
     {
         static void Main(string[] args)
         {
-        
             GradeBook book = new GradeBook();
 
-            book.NameChanged += OnNameChanged;
-     
+            GetBookName(book);
+            AddGrades(book);
+            SaveGrades(book);
+            WriteResults(book);
+        }
 
-            book.Name = "Naomi's gradebook";
-            book.Name = "gradebook";
+        private static void WriteResults(GradeBook book)
+        {
+            GradeStatistics stats = book.ComputeStatistics();
+            WriteResult("Average", stats.AverageGrade);
+            WriteResult("Highest", stats.HighestGrade);
+            WriteResult("Lowest", stats.LowestGrade);
+            WriteResult(stats.Description, stats.LetterGrade);
+        }
 
+        private static void SaveGrades(GradeBook book)
+        {
+            using (StreamWriter outputFile = File.CreateText("grades.txt"))
+            {
+                book.WriteGrades(outputFile);
+            }
+        }
+
+        private static void AddGrades(GradeBook book)
+        {
             book.AddGrade(91);
             book.AddGrade(89.5f);
             book.AddGrade(75);
-
-            GradeStatistics stats = book.ComputeStatistics();
-            Console.WriteLine(book.Name);
-            WriteResult("Average", stats.AverageGrade);
-            WriteResult("Highest", (int)stats.HighestGrade);
-            WriteResult("Lowest", stats.LowestGrade);
-            
         }
 
-
-        static void WriteResult(string description, int result)
+        private static void GetBookName(GradeBook book)
         {
-            Console.WriteLine($"{description}: {result}");
+            try
+            {
+                Console.WriteLine("Enter a name:");
+                book.Name = Console.ReadLine();
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        static void WriteResult(string description, string result)
+        {
+            Console.WriteLine("{0}: {1}", description, result);
         }
 
         static void WriteResult(string description, float result)
         {
             Console.WriteLine("{0}: {1}",description, result);
-        }
-
-        static void OnNameChanged(object sender, NameChangedEventArgs args)
-        {
-            Console.WriteLine($"Grade book changing name from {args.ExistingName} to {args.NewName}");
         }
 
     }
